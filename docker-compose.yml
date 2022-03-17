@@ -1,0 +1,18 @@
+version: "2.1"
+services:
+  dev:
+    image: radio_app
+    build: .
+    environment:
+      PORT: 3000
+    command:
+      - npm
+      - run
+      - dev
+    volumes:
+      - .:/radio-app
+      - node_modules:/radio-app/node_modules
+    ports:
+      - 3000:3000
+volumes:
+  node_modules: {}
