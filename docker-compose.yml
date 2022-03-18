@@ -14,5 +14,35 @@ services:
       - node_modules:/radio-app/node_modules
     ports:
       - 3000:3000
+  test:
+    image: radio_app
+    build: .
+    command:
+      - npm
+      - run
+      - test
+    volumes:
+      - .:/radio-app
+      - node_modules:/radio-app/node_modules
+  test-watch:
+    image: radio_app
+    build: .
+    command:
+      - npm
+      - run
+      - test:watch
+    volumes:
+      - .:/radio-app
+      - node_modules:/radio-app/node_modules
+  test-coverage:
+    image: radio_app
+    build: .
+    command:
+      - npm
+      - run
+      - test:coverage
+    volumes:
+      - .:/radio-app
+      - node_modules:/radio-app/node_modules
 volumes:
   node_modules: {}
