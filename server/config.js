@@ -13,7 +13,7 @@ export default {
     publicDirectory,
     audioDirectory,
     songsDirectory,
-    fsDirectory: join(audioDirectory, "fs"),
+    fxDirectory: join(audioDirectory, "fx"),
   },
   pages: {
     homeHTML: "home/index.html",
@@ -29,7 +29,8 @@ export default {
       ".js": "text/javascript",
     },
     audioMediaType: "mp3",
-    songVolume: "0,99",
+    songVolume: "0.99",
+    fxVolume: "0.1",
     fallBackBitRate: "128000",
     bitRateDivisor: 8,
     englishConversation: join(songsDirectory, "conversation.mp3"),
