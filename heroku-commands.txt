@@ -1,0 +1,22 @@
+heroku.yml
+npm i -g heroku
+heroku login
+
+git init
+npx gitignore node
+
+git add . && git commit -m "first commit"
+
+heroku apps:create radio-app
+git remote -v
+heroku stack:set container
+git push heroku master
+heroku open
+heroku logs -t -a radio-app
+
+
+# para remover
+
+heroku apps:delete
+>radio-app
+rm -rf .git
