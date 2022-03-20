@@ -1,7 +1,7 @@
 import fs from "fs";
 import fsPromises from "fs/promises";
 import config from "./config.js";
-import { join, extname } from "path";
+import path, { join, extname } from "path";
 import { randomUUID } from "crypto";
 import { PassThrough, Writable } from "stream";
 import Throttle from "throttle";
@@ -11,8 +11,15 @@ import { once } from "events";
 import { logger } from "./util.js";
 
 const {
-  dir: { publicDirectory },
-  constants: { fallBackBitRate, englishConversation, bitRateDivisor },
+  dir: { publicDirectory, fxDirectory },
+  constants: {
+    fallBackBitRate,
+    englishConversation,
+    bitRateDivisor,
+    audioMediaType,
+    songVolume,
+    fxVolume,
+  },
 } = config;
 
 export class Service {
@@ -115,5 +122,61 @@ export class Service {
       stream: this.createFileStream(name),
       type,
     };
+  }
+
+  async readFxByName(fxName) {
+    const songs = await fsPromises.readdir(fxDirectory);
+    const chosenSong = songs.find((filename) =>
+      filename.toLowerCase().includes(fxName)
+    );
+    if (!chosenSong) return Promise.reject(`the song ${fxName} wasn't found!`);
+
+    return path.join(fxDirectory, chosenSong);
+  }
+
+  appendFxStream(fx) {
+    const throttleTransformable = new Throttle(this.currentBitRate);
+    streamsPromises.pipeline(throttleTransformable, this.broadCast());
+    const unpipe = () => {
+      const transformStream = this.mergeAudioStreams(fx, this.currentReadable);
+      this.throttleTransform = throttleTransformable;
+      this.currentReadable = transformStream;
+      this.currentReadable.removeListener("unpipe", unpipe);
+
+      streamsPromises.pipeline(transformStream, throttleTransformable);
+    };
+    this.throttleTransform.on("unpipe", unpipe);
+    this.throttleTransform.pause();
+    this.currentReadable.unpipe(this.throttleTransform);
+  }
+
+  mergeAudioStreams(song, readable) {
+    const transformStream = PassThrough();
+    const args = [
+      "-t",
+      audioMediaType,
+      "-v",
+      songVolume,
+      //-m => merge; - => pra receber como stream
+      "-m",
+      "-",
+      "-t",
+      audioMediaType,
+      "-v",
+      fxVolume,
+      song,
+      "-t",
+      audioMediaType,
+      "-",
+    ];
+
+    const { stdout, stdin } = this._executeSoxCommands(args);
+
+    //plugando a stream de conversação na  entrada de dados do terminal
+    streamsPromises.pipeline(readable, stdin);
+
+    streamsPromises.pipeline(stdout, transformStream);
+
+    return transformStream;
   }
 }
